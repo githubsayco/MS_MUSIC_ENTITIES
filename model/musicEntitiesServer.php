@@ -4,7 +4,6 @@ header('Content-Type: application/json');
 require_once('../config/database_sqlsrv_connect.php'); 
 
 $allowedResourceTypes = [
-    'entity',
     'entities'
   ];
 
@@ -42,7 +41,7 @@ switch ( strtoupper($_SERVER['REQUEST_METHOD'])){
 
                                 }
 
-              close_bd_back($stat_entities ,$conn_entities);
+         close_bd_back($stat_entities ,$conn_entities);
 
          echo json_encode($detEntity);
        break;
@@ -52,37 +51,47 @@ switch ( strtoupper($_SERVER['REQUEST_METHOD'])){
                 if ($resourceType==$_GET['service'])
                 {
                    $input = json_decode(file_get_contents('php://input'),true);   
-                   
-                   echo json_encode($input['NIT']);  
+        
+                                 $sql_entities="INSERT INTO mtprocli
+                                 (nit, apellido1, apellido2,
+                                 cdciiu,
+                                 ciudad, ciudadprv, codpostal,
+                                 direccion, email,emailp,EMAILFEC,identifica,
+                                 nombre, nombre1, nombre2, tel1,
+                                 tel2, vendedor, pais, coddepto, emailcar,
+                                 passwordin, fechaing, fecnac, fecmod, habilitado, escliente , esprovee, intcar, codigoctap,codctaniif,facelectro,
+                                 clase,personanj
+                                 )
+                                 VALUES ('". $input['NIT'] ."', UPPER('". $input['APELLIDO1'] ."'), UPPER('". $input['APELLIDO2'] ."'),
+                                 (SELECT min(codigo)
+                                    FROM mtcddan
+                                    WHERE nomciud like UPPER ('%" . $input['CIUDADPRV'] ."%')),
+                                 (SELECT codciudad
+                                    FROM ciudad
+                                    WHERE nombre like UPPER ('%". $input['CIUDADPRV'] ."%')), UPPER ('". $input['CIUDADPRV'] ."'), '" . $input['CODPOSTAL'] ."',
+                                 UPPER('". $input['DIRECCION'] ."'), '" . $input['EMAIL'] ."', '" . $input['EMAIL'] ."' , '" . $input['EMAIL'] ."', '".$input['IDENTIFICA'] ."',
+                                 UPPER('" . $input['NOMBRE'] ."'), UPPER('" . $input['NOMBRE1'] ."'), UPPER('" . $input['NOMBRE2'] ."'), '" . $input['TEL1'] ."',
+                                 '" . $input['TEL2'] . "', '" . $input['VENDEDOR'] ."', '" . $input['PAIS'] ."', '" . $input['CODDEPTO'] ."', '" . $input['EMAILCAR'] ."',
+                                 '" . $input['PASSWORDIN'] . "', CONVERT(VARCHAR(10), GETDATE(), 103), CONVERT(VARCHAR(10), GETDATE(), 103),CONVERT(VARCHAR(10), GETDATE(), 103),'S','S','S','S','23359501','13809501','1',
+                                 (select codigo from vPopupClaseSayco where Identifica='".$input['IDENTIFICA'] ."'), (select personanj from vPopupClaseSayco where Identifica='".$input['IDENTIFICA'] ."'))"  ;
+                              
+                           $conn_entities = connect_bd_back();
+                           $stat_entities = sqlsrv_query( $conn_entities, $sql_entities);
+                           
+                                  
+                         if( $stat_entities === false ) {
+                             
+                           http_response_code(400);
+                           die(json_encode('Insert Failed '));
 
-                   $sql_entities="INSERT INTO mtprocli
-                   (nit, apellido1, apellido2,
-                    cdciiu,
-                    ciudad, ciudadprv, codpostal,
-                    direccion, email,emailp,EMAILFEC,identifica,
-                    nombre, nombre1, nombre2, tel1,
-                    tel2, vendedor, pais, coddepto, emailcar,
-                    passwordin, fechaing, fecnac, fecmod, habilitado, escliente , esprovee, intcar, codigoctap,codctaniif,facelectro,
-                    clase,personanj
-                   )
-            VALUES ('900123456-7', UPPER('Gomez'), UPPER('Perez'),
-                    (SELECT codigo
-                       FROM mtcddan
-                      WHERE nomciud = UPPER ('Medellin')),
-                    (SELECT codciudad
-                       FROM ciudad
-                      WHERE nombre = UPPER ('Medellin')), UPPER ('Medellin'), '050015',
-                    UPPER('Calle 10 No 22-33'), 'empresario@example.com','empresario@example.com', 'empresario@example.com', 'N',
-                    UPPER('Gomez Perez Juan'), UPPER('Juan'), UPPER('Carlos'), '0341234567',
-                    '3001234567', '001', '169', '05', 'cartera@example.com',
-                    'password123', '19/04/2024','19/04/2024','19/04/2024','S','S','S','S','23359501','13809501','1',
-                    (select codigo from vPopupClaseSayco where Identifica='N'), (select personanj from vPopupClaseSayco where Identifica='N'))"  ;
-                 }
+                              
+                         }
+                     
+                         http_response_code(201);
+                         close_bd_back($stat_entities ,$conn_entities);       
+                         echo json_encode('Insert completed');
 
-              $conn_entities = connect_bd_back();
-              $stat_entities = sqlsrv_query( $conn_entities, $sql_entities);
-                   
-
+               }
        break;
    
    case 'PUT':
